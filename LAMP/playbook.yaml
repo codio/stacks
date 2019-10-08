@@ -1,0 +1,51 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  vars:
+    MySQL_root_pass: codio
+    
+  tasks:
+    - apt: name=apache2 state=present
+    - name: Ensure apache2 is running
+      service:
+        name=apache2
+        state=started
+    - apache2_module: state=present name=rewrite
+    - action: copy src=ports.conf dest=/etc/apache2/ports.conf 
+      notify: restart apache2
+    - name: Vhost update
+      action: copy
+        src=vhost.conf
+        dest=/etc/apache2/sites-available/000-default.conf
+      notify: restart apache2
+      
+      
+    - name: Set MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password' value='{{MySQL_root_pass | quote}}' vtype='password'
+    - name: Set MySQL root again password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password_again' value='{{MySQL_root_pass | quote}}' vtype='password'
+    - name: Install MySQL
+      apt: 
+        name:
+          - mysql-server
+          - mysql-client
+          - python-mysqldb
+        state: present
+    - copy: src=my.cnf dest=/home/codio/.my.cnf 
+     
+    - name: Install PHP
+      apt:
+        name:
+          - php
+          - libapache2-mod-php
+          - php-mysql
+        state: present
+      notify: restart apache2  
+      
+  handlers:
+    - name: restart apache2
+      service:
+        name=apache2
+        state=restarted
+        
+        
