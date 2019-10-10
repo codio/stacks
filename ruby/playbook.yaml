@@ -1,0 +1,73 @@
+---
+- hosts: 127.0.0.1
+  become: true  
+  
+  tasks:        
+    - name: Install the dependencies required to install Ruby     
+      apt: 
+        name:
+          - autoconf
+          - bison
+          - build-essential
+          - libssl-dev
+          - libyaml-dev
+          - libreadline6-dev
+          - zlib1g-dev
+          - libncurses5-dev
+          - libffi-dev
+          - libgdbm5
+          - libgdbm-dev
+          - software-properties-common
+        state: present
+      
+    - name: Add ppa brightbox ruby repository  
+      apt_repository:
+        repo: ppa:brightbox/ruby-ng 
+        state: present
+        
+    - name: Update apt packages
+      become: true
+      apt:        
+        update_cache: yes
+        
+    - name: Install Ruby and SQLite     
+      apt:
+        name:
+          - ruby2.6
+          - ruby2.6-dev
+          - sqlite3
+        state: present
+        
+    - name: Configure .gemrc file
+      become_user: codio
+      action: copy
+        src=gem.conf
+        dest=/home/codio/.gemrc
+    
+    - name: Install bundler
+      become_user: codio
+      shell: gem install --user bundler  
+               
+    - name: Install Rails
+      become_user: codio
+      shell: gem install --user rails -v 6.0.0    
+        
+    - name: Install rubocop
+      become_user: codio
+      shell: gem install --user rubocop          
+    
+    - name: Install rspec
+      become_user: codio
+      shell: gem install --user rspec
+      
+    - name: add gem bin to path
+      become_user: codio
+      shell: echo 'export PATH="$HOME/.gem/ruby/2.6.0/bin:$PATH"' >> ~/.bashrc
+       
+    - name: reload bash
+      shell: |
+        source ~/.bashrc
+        source ~/.profile
+      args:
+        executable: /bin/bash
+        
