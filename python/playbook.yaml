@@ -2,9 +2,8 @@
 - hosts: 127.0.0.1
   become: true
   tasks:
-    - name: Update and upgrade apt packages      
-      apt:
-        upgrade: yes
+    - name: Update apt packages      
+      apt:        
         update_cache: yes
     - apt: name=python state=present
     - apt: name=python-dev state=present
