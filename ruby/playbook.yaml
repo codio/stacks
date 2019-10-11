@@ -44,30 +44,14 @@
         src=gem.conf
         dest=/home/codio/.gemrc
     
-    - name: Install bundler
-      become_user: codio
-      shell: gem install --user bundler  
+    - name: Install bundler     
+      shell: gem install bundler  
                
-    - name: Install Rails
-      become_user: codio
-      shell: gem install --user rails -v 6.0.0    
+    - name: Install Rails      
+      shell: gem install rails -v 6.0.0    
         
-    - name: Install rubocop
-      become_user: codio
-      shell: gem install --user rubocop          
+    - name: Install rubocop      
+      shell: gem install rubocop          
     
-    - name: Install rspec
-      become_user: codio
-      shell: gem install --user rspec
-      
-    - name: add gem bin to path
-      become_user: codio
-      shell: echo 'export PATH="$HOME/.gem/ruby/2.6.0/bin:$PATH"' >> ~/.bashrc
-       
-    - name: reload bash
-      shell: |
-        source ~/.bashrc
-        source ~/.profile
-      args:
-        executable: /bin/bash
-        
+    - name: Install rspec      
+      shell: gem install rspec
