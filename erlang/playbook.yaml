@@ -1,0 +1,23 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    
+    - name: Add Erlang Solutions repository
+      shell: |
+        wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+        dpkg -i erlang-solutions_1.0_all.deb
+    
+    - name: Update apt packages      
+      apt:        
+        update_cache: yes
+     
+    - name: Install Erlang    
+      apt: name=esl-erlang state=present
+    
+    - name: Install Elixir    
+      apt: name=elixir state=present
+      
+    - name: remove downloaded file
+      shell: rm erlang-solutions_1.0_all.deb
+      
