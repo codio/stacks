@@ -2,24 +2,28 @@
 - hosts: 127.0.0.1
   become: true
   tasks:
-    - name: Update apt packages      
-      apt:        
-        update_cache: yes
-    - apt: name=python state=present
-    - apt: name=python-dev state=present
-    - apt: name=python-pip state=present
-    - apt: name=python-setuptools state=present
-    - apt: name=python-tk state=present
-    - apt: name=ipython state=present   
-    - apt: name=python3 state=present
-    - apt: name=python3-dev state=present
-    - apt: name=python3-pip state=present
-    - apt: name=python3-setuptools state=present
-    - apt: name=python3-tk state=present
-    - apt: name=ipython3 state=present
-    - apt: name=build-essential state=present
+    - apt: update_cache=yes  
     
-    - name: Installing python packages      
+    - name: Install python2, python3, build-essential
+      apt:
+        name:
+          - python
+          - python-dev
+          - python-pip
+          - python-setuptools
+          - python-tk
+          - ipython
+          - python3
+          - python3-dev
+          - python3-pip
+          - python3-setuptools
+          - python3-tk
+          - ipython3
+          - build-essential
+        state: present
+        update_cache: yes
+    
+    - name: Installing python libs     
       become_user: codio
       pip:
         name: numpy, scipy, matplotlib

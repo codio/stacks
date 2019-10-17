@@ -4,14 +4,30 @@
   tasks:
     - name: Install OpenJDK 11     
       apt: name=openjdk-11-jdk state=present
-    - apt: name=maven state=present    
-    - apt: name=zip  state=present
-    - apt: name=unzip state=present
-    - name: Download Gradle
-      shell: wget https://services.gradle.org/distributions/gradle-5.6.2-bin.zip -P /tmp 
-    - name: Extract the zip file  
-      shell: unzip -d /opt/gradle /tmp/gradle-5.6.2-bin.zip
+    
+    - name: Install Maven
+      apt: name=maven state=present 
+    
+    - name: Install zip and unzip
+      apt:
+        name: 
+          - zip
+          - unzip
+        state: present      
+   
+    - name: Ensure gradle directory exists
+      file:
+        path: /opt/gradle
+        state: directory
+   
+    - name: Download and install Gradle
+      unarchive:        
+        src: https://services.gradle.org/distributions/gradle-5.6.2-bin.zip
+        dest: /opt/gradle
+        remote_src: yes        
+   
     - apt: update_cache=yes
+    
     - name: Setup environment variables      
       shell: |
         echo "export GRADLE_HOME=/opt/gradle/gradle-5.6.2  

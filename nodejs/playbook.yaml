@@ -1,12 +1,20 @@
 ---
 - hosts: 127.0.0.1
-  sudo: true
+  become: true
   tasks:
     - name: Add nodesource repository
       shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
-    - shell: |
-        curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+        
+    - name: Add APT key
+      apt_key: 
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+    
+    - name: Add APT repository
+      apt_repository: 
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+        state: present
+    
     - apt: update_cache=yes
     - apt: name=nodejs state=present
     - apt: name=build-essential state=present

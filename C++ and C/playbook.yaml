@@ -1,16 +1,18 @@
 ---
 - hosts: 127.0.0.1
   become: true
-  tasks:
-    - name: Update apt packages
-      apt:        
-        update_cache: yes
-    - apt: name=build-essential state=present
-    - apt: name=manpages-dev state=present    
-    - apt: name=gdb state=present
-    - apt: name=bison state=present
-    - apt: name=autoconf state=present
-    - apt: name=automake state=present
-    - apt: update_cache=yes
+  tasks:  
+    - apt: update_cache=yes  
     
-   
+    - name: Install a list of packages
+      apt:
+        name:
+          - build-essential
+          - manpages-dev
+          - gdb
+          - bison
+          - autoconf
+          - automake
+        state: present
+        update_cache: yes       
+       

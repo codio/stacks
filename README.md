@@ -1,6 +1,9 @@
 # stacks
 Ansible scripts for default Codio recommended stacks
 
-# Empty
+# How to run
 
-WIP
+```
+sudo ansible-playbook path/to/file
+
+```
