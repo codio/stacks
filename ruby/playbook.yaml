@@ -31,11 +31,12 @@
         update_cache: yes
         
     - name: Install Ruby and SQLite     
-      apt:
+      apt:	
         name:
           - ruby2.6
           - ruby2.6-dev
           - sqlite3
+          - libsqlite3-dev
         state: present
         
     - name: Configure .gemrc file
