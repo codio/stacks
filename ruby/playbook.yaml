@@ -25,8 +25,7 @@
       apt: 
         name:
           - autoconf
-          - bison
-          - build-essential
+          - bison         
           - libssl-dev
           - libyaml-dev
           - libreadline6-dev
