@@ -1,0 +1,75 @@
+---
+- hosts: 127.0.0.1
+  become: true  
+  
+  tasks:    
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
+        
+    - name: Add APT key
+      apt_key: 
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+    
+    - name: Add APT repository
+      apt_repository: 
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+        state: present
+    
+    - apt: update_cache=yes
+    - apt: name=nodejs state=present
+    - apt: name=build-essential state=present
+    - apt: name=yarn state=present
+    
+    - name: Install the dependencies required to install Ruby     
+      apt: 
+        name:
+          - autoconf
+          - bison         
+          - libssl-dev
+          - libyaml-dev
+          - libreadline6-dev
+          - zlib1g-dev
+          - libncurses5-dev
+          - libffi-dev
+          - libgdbm5
+          - libgdbm-dev
+          - software-properties-common
+        state: present
+      
+    - name: Add ppa brightbox ruby repository  
+      apt_repository:
+        repo: ppa:brightbox/ruby-ng 
+        state: present
+        
+    - name: Update apt packages
+      become: true
+      apt:        
+        update_cache: yes
+        
+    - name: Install Ruby and SQLite     
+      apt:	
+        name:
+          - ruby2.6
+          - ruby2.6-dev
+          - sqlite3
+          - libsqlite3-dev
+        state: present
+        
+    - name: Configure .gemrc file
+      become_user: codio
+      action: copy
+        src=gem.conf
+        dest=/home/codio/.gemrc
+    
+    - name: Install bundler     
+      shell: gem install bundler  
+               
+    - name: Install Rails      
+      shell: gem install rails -v 6.0.0    
+        
+    - name: Install rubocop      
+      shell: gem install rubocop          
+    
+    - name: Install rspec      
+      shell: gem install rspec

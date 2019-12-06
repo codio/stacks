@@ -1,0 +1,8 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - apt: update_cache=yes
+    - apt: name=man state=present
+    - apt: name=rsync state=present
+    - apt: name=git state=present
