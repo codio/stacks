@@ -1,0 +1,68 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  roles:
+    - role: local.http
+    - role: jdauphant.nginx
+      nginx_sites:
+        default:
+          - listen 80;
+          - client_max_body_size 150m;
+          - index index.html
+          - root /home/codio/jeroo/jeroo/dist/jeroo;
+          - location / {
+              root /home/codio/jeroo/jeroo/dist/jeroo;
+              try_files $uri /index.html break;
+            }
+          - location ^~ /jeroo-server-service/ {
+              proxy_pass http://0.0.0.0:7500/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_http_version 1.1;
+              proxy_cache off;
+              proxy_buffering off;
+            }
+
+  tasks:
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_12.x | bash -
+
+    - name: Add APT key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+    - name: Add APT repository
+      apt_repository:
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+        state: present
+
+    - apt: update_cache=yes
+    - apt: name=nodejs state=present
+    - apt: name=build-essential state=present
+    - apt: name=yarn state=present
+
+    - name: Install Opam
+      shell: sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
+
+    # Jeroo
+    - git:
+      repo: ssh://git@github.com:codio/jeroo.git
+      dest: /home/codio/jeroo/jeroo
+
+    - name: Yarn jeroo
+      - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
+      - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
+      - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0777
+      - shell: ./tmp/jeroo-opam.sh
+      - shell: ./tmp/yarn-jeroo-server.sh
+
+    # Jeroo server
+    - git:
+      repo: ssh://git@github.com:codio/jeroo-server.git
+      dest: /home/codio/jeroo/jeroo-server
+
+    - name: Yarn jeroo-server
+      - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
+      - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
+      - shell: ./tmp/yarn-jeroo-server.sh
