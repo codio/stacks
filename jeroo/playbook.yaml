@@ -2,7 +2,6 @@
 - hosts: 127.0.0.1
   become: true
   roles:
-    - role: local.http
     - role: jdauphant.nginx
       nginx_sites:
         default:
@@ -42,27 +41,54 @@
     - apt: name=build-essential state=present
     - apt: name=yarn state=present
 
-    - name: Install Opam
-      shell: sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
+    - apt: name=zip state=present
+    - apt: name=bubblewrap state=present
+
+    # Install Opam
+    - name: Get Opam
+      shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
+
+    - name: Add Opam repository
+      shell: install ./opam-2.0.8-x86_64-linux /usr/local/bin/opam
 
     # Jeroo
-    - git:
-      repo: ssh://git@github.com:codio/jeroo.git
-      dest: /home/codio/jeroo/jeroo
+    - name: Jeroo checkout
+      become: yes
+      become_user: codio
+      git:
+        repo: 'https://github.com/codio/jeroo.git'
+        dest: /home/codio/jeroo/jeroo
+        update: no
+        version: 12431_server_save
 
-    - name: Yarn jeroo
-      - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
-      - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
-      - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0777
-      - shell: ./tmp/jeroo-opam.sh
-      - shell: ./tmp/yarn-jeroo-server.sh
+    - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
+    - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
+    - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0777
+
+    - name: Yarn jeroo build compiler
+      shell: sh /tmp/jeroo-opam.sh
+      become: yes
+      become_user: codio
+
+    - name: Yarn jeroo build
+      shell: sh /tmp/yarn-jeroo.sh
+      become: yes
+      become_user: codio
 
     # Jeroo server
-    - git:
-      repo: ssh://git@github.com:codio/jeroo-server.git
-      dest: /home/codio/jeroo/jeroo-server
+    - name: Jeroo server checkout
+      become: yes
+      become_user: codio
+      git:
+        repo: 'https://github.com/codio/jeroo-server.git'
+        dest: /home/codio/jeroo/jeroo-server
+        update: no
+        version: 12431_server_save
+
+    - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
+    - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
 
     - name: Yarn jeroo-server
-      - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
-      - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
-      - shell: ./tmp/yarn-jeroo-server.sh
+      shell: sh /tmp/yarn-jeroo-server.sh
+      become: yes
+      become_user: codio
