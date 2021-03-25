@@ -45,8 +45,14 @@
     - apt: name=bubblewrap state=present
 
     # Install Opam
+    - name: Check opam installer exists
+      stat:
+        path: ./opam-2.0.8-x86_64-linux
+      register: opam_installer
+
     - name: Get Opam
       shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
+      when: not opam_installer.stat.exists
 
     - name: Add Opam repository
       shell: install ./opam-2.0.8-x86_64-linux /usr/local/bin/opam
@@ -92,3 +98,7 @@
       shell: sh /tmp/yarn-jeroo-server.sh
       become: yes
       become_user: codio
+
+    - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
+
+    - service: name=jeroo-server state=restarted
