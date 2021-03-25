@@ -76,6 +76,13 @@
       become: yes
       become_user: codio
 
+    - name: jeroo - yarn install
+      become: yes
+      become_user: codio
+      shell: yarn install
+      args:
+        chdir: /home/codio/jeroo/jeroo
+
     - name: Yarn jeroo build
       shell: sh /tmp/yarn-jeroo.sh
       become: yes
@@ -93,6 +100,13 @@
 
     - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
     - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
+
+    - name: jeroo server - yarn install
+      become: yes
+      become_user: codio
+      shell: yarn install
+      args:
+        chdir: /home/codio/jeroo/jeroo-server
 
     - name: Build jeroo-server
       shell: sh /tmp/yarn-jeroo-server.sh
