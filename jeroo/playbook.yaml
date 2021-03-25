@@ -94,11 +94,12 @@
     - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
     - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
 
-    - name: Yarn jeroo-server
+    - name: Build jeroo-server
       shell: sh /tmp/yarn-jeroo-server.sh
       become: yes
       become_user: codio
 
+    - copy: src=scripts/jeroo-server.sh dest=/tmp/jeroo-server.sh mode=0777
     - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
 
     - service: name=jeroo-server state=restarted
