@@ -115,4 +115,4 @@
     - copy: src=scripts/jeroo-server.sh dest=/home/codio/jeroo/jeroo-server/jeroo-server.sh mode=0777
     - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
 
-    - service: name=jeroo-server state=restarted
+    - service: name=jeroo-server state=restarted enabled=true
