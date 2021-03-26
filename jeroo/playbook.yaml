@@ -5,8 +5,8 @@
     - role: jdauphant.nginx
       nginx_sites:
         jeroo:
-          - listen 7501;
-          - client_max_body_size 150m;
+          - listen 7501
+          - client_max_body_size 150m
           - index index.html
           - location / {
               root /home/codio/jeroo/jeroo/dist/jeroo;
