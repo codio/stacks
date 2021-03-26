@@ -3,7 +3,7 @@ WorkingDirectory = /home/codio/jeroo/jeroo-server
 User = codio
 Group = codio
 TimeoutStopSec = 10
-ExecStart = /tmp/jeroo-server.sh
+ExecStart = /home/codio/jeroo/jeroo-server/jeroo-server.sh
 Restart = always
 
 [Unit]
