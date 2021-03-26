@@ -63,7 +63,7 @@
       git:
         repo: 'https://github.com/codio/jeroo.git'
         dest: /home/codio/jeroo/jeroo
-        update: no
+        update: yes
         version: 12431_server_save
 
     - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
@@ -94,7 +94,7 @@
       git:
         repo: 'https://github.com/codio/jeroo-server.git'
         dest: /home/codio/jeroo/jeroo-server
-        update: no
+        update: yes
         version: 12431_server_save
 
     - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
