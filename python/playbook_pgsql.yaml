@@ -1,0 +1,15 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - name: Install libpq-dev
+      apt:
+        name:
+          - libpq-dev
+        state: present
+        update_cache: yes
+
+    - name: Install psycopg2
+      become_user: codio
+      pip:
+        name: psycopg2
