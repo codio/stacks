@@ -1,0 +1,120 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  roles:
+    - role: jdauphant.nginx
+      nginx_sites:
+        jeroo:
+          - listen 7501
+          - client_max_body_size 150m
+          - index index.html
+          - location / {
+              root /home/codio/jeroo/jeroo/dist/jeroo;
+              try_files $uri /index.html break;
+            }
+          - location ^~ /jeroo-server-service/ {
+              proxy_pass http://0.0.0.0:7500/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_http_version 1.1;
+              proxy_cache off;
+              proxy_buffering off;
+            }
+
+  tasks:
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_12.x | bash -
+
+    - name: Add APT key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+    - name: Add APT repository
+      apt_repository:
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+        state: present
+
+    - apt: update_cache=yes
+    - apt: name=nodejs state=present
+    - apt: name=build-essential state=present
+    - apt: name=yarn state=present
+
+    - apt: name=zip state=present
+    - apt: name=bubblewrap state=present
+
+    # Install Opam
+    - name: Check opam installer exists
+      stat:
+        path: ./opam-2.0.8-x86_64-linux
+      register: opam_installer
+
+    - name: Get Opam
+      shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
+      when: not opam_installer.stat.exists
+
+    - name: Add Opam repository
+      shell: install ./opam-2.0.8-x86_64-linux /usr/local/bin/opam
+
+    # Jeroo
+    - name: Jeroo checkout
+      become: yes
+      become_user: codio
+      git:
+        repo: 'https://github.com/codio/jeroo.git'
+        dest: /home/codio/jeroo/jeroo
+        update: yes
+        force: yes
+        version: master
+
+    - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
+    - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
+    - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0777
+
+    - name: Yarn jeroo build compiler
+      shell: sh /tmp/jeroo-opam.sh
+      become: yes
+      become_user: codio
+
+    - name: jeroo - yarn install
+      become: yes
+      become_user: codio
+      shell: yarn install
+      args:
+        chdir: /home/codio/jeroo/jeroo
+
+    - name: Yarn jeroo build
+      shell: sh /tmp/yarn-jeroo.sh
+      become: yes
+      become_user: codio
+
+    # Jeroo server
+    - name: Jeroo server checkout
+      become: yes
+      become_user: codio
+      git:
+        repo: 'https://github.com/codio/jeroo-server.git'
+        dest: /home/codio/jeroo/jeroo-server
+        update: yes
+        force: yes
+        version: master
+
+    - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
+    - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
+
+    - name: jeroo server - yarn install
+      become: yes
+      become_user: codio
+      shell: yarn install
+      args:
+        chdir: /home/codio/jeroo/jeroo-server
+
+    - name: Build jeroo-server
+      shell: sh /tmp/yarn-jeroo-server.sh
+      become: yes
+      become_user: codio
+
+    - copy: src=scripts/jeroo-server.sh dest=/home/codio/jeroo/jeroo-server/jeroo-server.sh mode=0777
+    - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
+
+    - service: name=jeroo-server state=restarted enabled=true
