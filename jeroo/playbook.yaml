@@ -65,7 +65,7 @@
         dest: /home/codio/jeroo/jeroo
         update: yes
         force: yes
-        version: 12431_server_save
+        version: master
 
     - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
     - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
@@ -97,7 +97,7 @@
         dest: /home/codio/jeroo/jeroo-server
         update: yes
         force: yes
-        version: 12431_server_save
+        version: master
 
     - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
     - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
