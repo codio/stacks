@@ -20,7 +20,7 @@
         version: 12466_localhost
 
     - copy: src=scripts/pencilcode-build.sh dest=/home/codio/pencilcode/pencilcode-build.sh mode=0777
-    - copy: src=scripts/pencilcode-server.sh dest=/home/codio/pencilcode/pencilcode-server.sh mode=0777
+
 
     - name: Pencilcode build
       become: codio
@@ -28,5 +28,7 @@
       args:
         chdir: /home/codio/pencilcode
 
+    - copy: src=scripts/pencilcode-server.sh dest=/home/codio/pencilcode/pencilcode-server.sh mode=0777
+    - copy: src=systemd/pencilcode-server.service dest=/etc/systemd/system/pencilcode-server.service
 
     - service: name=pencilcode-server state=restarted enable=true
