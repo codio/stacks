@@ -1,0 +1,22 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - apt: update_cache=yes 
+          
+    - name: Installing notebook and nbgrader      
+      pip:
+        name: notebook, nbgrader
+        executable: pip3
+        
+    - name: Systemd for jupyter
+      copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
+      when: ansible_distribution_version >= "16.04"
+      
+    - name: jupyter restarted
+      systemd:
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+        name: jupyter
+      when: ansible_distribution_version >= "16.04"
