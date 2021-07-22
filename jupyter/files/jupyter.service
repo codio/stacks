@@ -3,7 +3,7 @@ Description=Jupyter Notebook
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/jupyter notebook -y --NotebookApp.token='' --port 3000 --NotebookApp.ip='0.0.0.0' --no-browser --NotebookApp.tornado_settings='{ "headers": { "Content-Security-Policy": "frame-ancestors 'self' https://*" } }'
+ExecStart=/home/codio/.local/bin/jupyter notebook -y --NotebookApp.token='' --port 3000 --NotebookApp.ip='0.0.0.0' --no-browser --NotebookApp.tornado_settings='{ "headers": { "Content-Security-Policy": "frame-ancestors 'self' https://*" } }'
 User=codio
 Group=codio
 WorkingDirectory=/home/codio/workspace
