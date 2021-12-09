@@ -20,7 +20,7 @@
 
     - name: Installing notebook and nbgrader
       pip:
-        name: notebook, nbgrader, numpy, scipy, matplotlib, torch
+        name: notebook, nbgrader, numpy, scipy, matplotlib
         executable: pip3
         extra_args: --user
       become: true
