@@ -18,17 +18,6 @@
       become_user: codio
       become_flags: '-s /bin/sh'
 
-    - name: Installing jupyter_client==6.1.12 nbconvert
-      pip:
-        name: jupyter_client
-        version: 6.1.12
-        executable: pip3
-        extra_args: --user
-      become: true
-      become_method: su
-      become_user: codio
-      become_flags: '-s /bin/sh'
-
     - name: Installing jupyter nbconvert
       pip:
         name: nbconvert
@@ -49,6 +38,18 @@
       become_method: su
       become_user: codio
       become_flags: '-s /bin/sh'
+
+    - name: Downgrade jupyter_client==6.1.12
+      pip:
+        name: jupyter_client
+        version: 6.1.12
+        executable: pip3
+        extra_args: --user
+      become: true
+      become_method: su
+      become_user: codio
+      become_flags: '-s /bin/sh'
+
 
     - name: Systemd for jupyter
       copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
