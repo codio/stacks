@@ -7,6 +7,17 @@
     - name: Install Pip
       apt: name=python3-pip state=present
 
+    - name: upgarde pip to the latest
+      pip:
+        name: pip
+        executable: pip3
+        extra_args: --user
+        state: latest
+      become: true
+      become_method: su
+      become_user: codio
+      become_flags: '-s /bin/sh'
+
     - name: Installing jupyter nbconvert
       pip:
         name: nbconvert
