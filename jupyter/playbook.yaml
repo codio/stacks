@@ -51,12 +51,12 @@
       become_flags: '-s /bin/sh'
 
     - name: Install nbgrader extension
-      shell: jupyter nbextension install --user --py nbgrader
+      shell: /home/codio/.local/bin/jupyter nbextension install --user --py nbgrader
       become: yes
       become_user: codio
 
     - name: Autoload nbgrader extension
-      shell: jupyter nbextension enable nbgrader --user --py
+      shell: /home/codio/.local/bin/jupyter nbextension enable nbgrader --user --py
       become: yes
       become_user: codio
 
