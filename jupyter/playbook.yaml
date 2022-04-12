@@ -50,6 +50,15 @@
       become_user: codio
       become_flags: '-s /bin/sh'
 
+    - name: Install nbgrader extension
+      shell: jupyter nbextension install --user --py nbgrader
+      become: yes
+      become_user: codio
+
+    - name: Autoload nbgrader extension
+      shell: jupyter nbextension enable nbgrader --user --py
+      become: yes
+      become_user: codio
 
     - name: Systemd for jupyter
       copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
