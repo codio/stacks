@@ -59,6 +59,11 @@
       shell: /home/codio/.local/bin/jupyter nbextension enable nbgrader --user --py
       become: yes
       become_user: codio
+    
+    - name: Autoload serverextension extension
+      shell: /home/codio/.local/bin/jupyter serverextension enable --user --py nbgrader
+      become: yes
+      become_user: codio
 
     - name: Systemd for jupyter
       copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
