@@ -1,0 +1,15 @@
+[Unit]
+Description=Jupyter Notebook
+
+[Service]
+Type=simple
+ExecStart=/home/codio/.local/bin/jupyter notebook -y --NotebookApp.token='' --port 3000 --NotebookApp.ip='0.0.0.0' --no-browser --NotebookApp.tornado_settings='{ "headers": { "Content-Security-Policy": "frame-ancestors 'self' https://*" } }'
+User=codio
+Group=codio
+WorkingDirectory=/home/codio/workspace
+Restart=always
+RestartSec=10
+#KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
