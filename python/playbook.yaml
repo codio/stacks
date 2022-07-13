@@ -7,12 +7,9 @@
     - name: Install python2, python3, build-essential
       apt:
         name:
-          - python
-          - python-dev
-          - python-pip
-          - python-setuptools
+          - python2
+          - python2-dev
           - python-tk
-          - ipython
           - python3
           - python3-dev
           - python3-pip
@@ -22,14 +19,31 @@
           - build-essential
         state: present
         update_cache: yes
-    
-    - name: Installing python libs     
+
+
+    - name: Download get-pip
+      ansible.builtin.get_url:
+        url: https://bootstrap.pypa.io/pip/2.7/get-pip.py
+        dest: /tmp/get-pip.py
+        mode: '0777'
+
+    - name: Installing python2 pip
       become_user: codio
-      pip:
-        name: numpy, scipy, matplotlib
-        extra_args: --user
+      shell: python2 /tmp/get-pip.py
+
+
+    - name: Installing python2 pip packages
+      become_user: codio
+      shell: python2 -m pip install --user numpy scipy matplotlib pycodestyle pygame
         
-    - name: Installing python packages           
-      pip:
-        name: pycodestyle, pygame
+    - name: Installing python3 libs     
+      become_user: codio
+      shell: pip3 install --user numpy scipy matplotlib pycodestyle pygame
         
+    - name: Correct python version selected
+      ansible.builtin.file:
+        src: /usr/bin/python3
+        dest: /usr/bin/python
+        owner: root
+        group: root
+        state: link
