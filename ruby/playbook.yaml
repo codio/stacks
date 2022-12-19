@@ -4,7 +4,7 @@
   
   tasks:    
     - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
+      shell: curl -sL https://deb.nodesource.com/setup_16.x | bash -
         
     - name: Add APT key
       apt_key: 
