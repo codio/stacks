@@ -2,14 +2,8 @@
 - hosts: 127.0.0.1
   become: true
   tasks:
-  # check node version for ubuntu
-    - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
-      when: ansible_facts['distribution_major_version'] | int < 18
-
     - name: Add nodesource repository
       shell: curl -sL https://deb.nodesource.com/setup_16.x | bash -
-      when: ansible_facts['distribution_major_version'] | int >= 18
 
     - apt: update_cache=yes
     - apt: name=nodejs state=present
