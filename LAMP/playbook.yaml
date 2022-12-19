@@ -29,8 +29,11 @@
         name:
           - mysql-server
           - mysql-client
-          - python-mysqldb
         state: present
+    - apt: name=python-mysqldb state=present update_cache=yes
+      when: ansible_facts['distribution_major_version'] | int < 22
+    - apt: name=python3-mysqldb state=present update_cache=yes
+      when: ansible_facts['distribution_major_version'] | int >= 22
     - copy: src=my.cnf dest=/home/codio/.my.cnf 
      
     - name: Install PHP and PHP extensions
