@@ -36,22 +36,37 @@
           - libgdbm-dev
           - software-properties-common
         state: present
-      
+      when: ansible_facts['distribution_major_version'] | int < 20
+    
     - name: Add ppa brightbox ruby repository  
       apt_repository:
         repo: ppa:brightbox/ruby-ng 
         state: present
-        
+      when: ansible_facts['distribution_major_version'] | int < 20
+
     - name: Update apt packages
       become: true
       apt:        
         update_cache: yes
-        
-    - name: Install Ruby and SQLite     
+
+    - name: Install Ruby     
       apt:	
         name:
           - ruby2.6
           - ruby2.6-dev
+        state: present
+      when: ansible_facts['distribution_major_version'] | int < 20
+
+    - name: Install Ruby
+      apt:
+        pkg:
+          - ruby-full
+        state: present
+      when: ansible_facts['distribution_major_version'] | int >= 20
+      
+    - name: Install SQLite     
+      apt:	
+        name:
           - sqlite3
           - libsqlite3-dev
         state: present
@@ -66,7 +81,7 @@
       shell: gem install bundler  
                
     - name: Install Rails      
-      shell: gem install rails -v 6.0.0    
+      shell: gem install rails -v 6.1.7    
         
     - name: Install rubocop      
       shell: gem install rubocop          
