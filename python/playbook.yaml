@@ -13,11 +13,11 @@
         - python-setuptools
         - python-tk
         - ipython
-      state: present
-      update_cache: yes
-      when: ansible_facts['distribution_major_version'] | int < 22
+        state: present
+        update_cache: yes
+      when: ansible_facts['distribution_major_version'] | int < 20
 
-    - name: Install python2, python3, build-essential
+    - name: Install python3, build-essential
       apt:
         name:
           - python3
