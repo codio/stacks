@@ -39,6 +39,7 @@
     - apt: name=nodejs state=present
     - apt: name=build-essential state=present
     - apt: name=yarn state=present
+    - apt: name=systemd state=latest
 
     - apt: name=zip state=present
     - apt: name=bubblewrap state=present
