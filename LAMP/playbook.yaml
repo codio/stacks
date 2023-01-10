@@ -5,6 +5,7 @@
     MySQL_root_pass: codio
     
   tasks:
+    - apt: update_cache=yes
     - apt: name=apache2 state=present
     - name: Ensure apache2 is running
       service:
