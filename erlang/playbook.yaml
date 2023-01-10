@@ -4,11 +4,11 @@
   tasks:    
     - name: Download Erlang Solutions deb file
       get_url:
-        url: https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+        url: https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
         dest: /tmp
         
     - name: Add Erlang Solutions repository
-      shell: dpkg -i /tmp/erlang-solutions_1.0_all.deb
+      shell: dpkg -i /tmp/erlang-solutions_2.0_all.deb
     
     - apt: update_cache=yes 
          
@@ -23,4 +23,4 @@
     - name: Clean temp file
       file:
         state: absent
-        path: /tmp/erlang-solutions_1.0_all.deb
+        path: /tmp/erlang-solutions_2.0_all.deb
