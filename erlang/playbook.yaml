@@ -6,9 +6,11 @@
       get_url:
         url: https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
         dest: /tmp
+      when: ansible_facts['distribution_major_version'] | int < 22
         
     - name: Add Erlang Solutions repository
       shell: dpkg -i /tmp/erlang-solutions_2.0_all.deb
+      when: ansible_facts['distribution_major_version'] | int < 22
 
     - name: Install Erlang and Elixir < Ubuntu 22
       apt:
@@ -19,9 +21,21 @@
         update_cache: yes
       when: ansible_facts['distribution_major_version'] | int < 22
     
+    # erlang-solutions Jammy do not have Release file so install erlang
+    - name: Download Erlang solutions file >= Ubuntu 22
+      get_url:
+        url: https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
+        dest: /tmp
+      when: ansible_facts['distribution_major_version'] | int >= 22
+      
+    - name: Add Erlang Solutions gpg >= Ubuntu 22
+      shell: gpg --dearmor -o /etc/apt/trusted.gpg.d/erlang.gpg /tmp/erlang_solutions.asc
+      when: ansible_facts['distribution_major_version'] | int >= 22
+
+    # 650Mb in additional packages
     - name: Install Erlang and Elixir >= Ubuntu 22
       apt:
-        name: 
+        name:
           - erlang
           - elixir
         state: present
