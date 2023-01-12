@@ -9,17 +9,25 @@
         
     - name: Add Erlang Solutions repository
       shell: dpkg -i /tmp/erlang-solutions_2.0_all.deb
-    
-    - apt: update_cache=yes 
-         
-    - name: Install Erlang and Elixir
+
+    - name: Install Erlang and Elixir < Ubuntu 22
       apt:
         name: 
           - esl-erlang
           - elixir
         state: present
         update_cache: yes
-              
+      when: ansible_facts['distribution_major_version'] | int < 22
+    
+    - name: Install Erlang and Elixir >= Ubuntu 22
+      apt:
+        name: 
+          - erlang
+          - elixir
+        state: present
+        update_cache: yes
+      when: ansible_facts['distribution_major_version'] | int >= 22
+       
     - name: Clean temp file
       file:
         state: absent
