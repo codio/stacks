@@ -29,6 +29,7 @@
       when: ansible_facts['distribution_major_version'] | int >= 22
       
     - name: Add Erlang Solutions gpg >= Ubuntu 22
+      become: true
       shell: gpg --dearmor -o /etc/apt/trusted.gpg.d/erlang.gpg /tmp/erlang_solutions.asc
       when: ansible_facts['distribution_major_version'] | int >= 22
 
