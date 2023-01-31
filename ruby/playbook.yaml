@@ -1,31 +1,31 @@
 ---
 - hosts: 127.0.0.1
-  become: true  
-  
-  tasks:    
+  become: true
+
+  tasks:
     - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
-        
+      shell: curl -sL https://deb.nodesource.com/setup_16.x | bash -
+
     - name: Add APT key
-      apt_key: 
+      apt_key:
         url: https://dl.yarnpkg.com/debian/pubkey.gpg
         state: present
-    
+
     - name: Add APT repository
-      apt_repository: 
+      apt_repository:
         repo: deb https://dl.yarnpkg.com/debian/ stable main
         state: present
-    
+
     - apt: update_cache=yes
     - apt: name=nodejs state=present
     - apt: name=build-essential state=present
     - apt: name=yarn state=present
-    
-    - name: Install the dependencies required to install Ruby     
-      apt: 
+
+    - name: Install the dependencies required to install Ruby
+      apt:
         name:
           - autoconf
-          - bison         
+          - bison
           - libssl-dev
           - libyaml-dev
           - libreadline6-dev
@@ -36,40 +36,58 @@
           - libgdbm-dev
           - software-properties-common
         state: present
-      
-    - name: Add ppa brightbox ruby repository  
+      when: ansible_facts['distribution_major_version'] | int < 20
+
+    - name: Add ppa brightbox ruby repository
       apt_repository:
-        repo: ppa:brightbox/ruby-ng 
+        repo: ppa:brightbox/ruby-ng
         state: present
-        
+      when: ansible_facts['distribution_major_version'] | int < 20
+
     - name: Update apt packages
       become: true
-      apt:        
+      apt:
         update_cache: yes
-        
-    - name: Install Ruby and SQLite     
-      apt:	
+
+    - name: Install Ruby
+      apt:
         name:
           - ruby2.6
           - ruby2.6-dev
+        state: present
+      when: ansible_facts['distribution_major_version'] | int < 20
+
+    - name: Install Ruby
+      apt:
+        pkg:
+          - ruby-full
+        state: present
+      when: ansible_facts['distribution_major_version'] | int >= 20
+
+    - name: Install SQLite
+      apt:
+        name:
           - sqlite3
           - libsqlite3-dev
         state: present
-        
+
     - name: Configure .gemrc file
       become_user: codio
       action: copy
         src=gem.conf
         dest=/home/codio/.gemrc
+
+    - name: Install bundler
+      shell: gem install bundle
     
-    - name: Install bundler     
-      shell: gem install bundler  
-               
-    - name: Install Rails      
-      shell: gem install rails -v 6.0.0    
-        
-    - name: Install rubocop      
-      shell: gem install rubocop          
-    
-    - name: Install rspec      
+    - name: Install nokogiri
+      shell: gem install rake nokogiri:1.13.10
+
+    - name: Install Rails
+      shell: gem install rails -v 6.1
+
+    - name: Install rubocop
+      shell: gem install rubocop
+
+    - name: Install rspec
       shell: gem install rspec
