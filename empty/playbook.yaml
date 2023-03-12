@@ -6,3 +6,19 @@
     - apt: name=man state=present
     - apt: name=rsync state=present
     - apt: name=git state=present
+    - name: Mask unattended-upgrades
+      ansible.builtin.systemd:
+        name: apt-daily.timer
+        enabled: false
+        masked: true
+
+    - name: Mask unattended-upgrades
+      ansible.builtin.systemd:
+        name: apt-daily-upgrade.timer
+        enabled: false
+        masked: true
+
+    - name: Remove Ubuntu Advantage
+      apt:
+        name: ubuntu-advantage-tools
+        state: absent
