@@ -6,6 +6,7 @@
     - apt: name=man state=present
     - apt: name=rsync state=present
     - apt: name=git state=present
+    - apt: name=jq state=present
     - name: Mask unattended-upgrades
       ansible.builtin.systemd:
         name: apt-daily.timer
