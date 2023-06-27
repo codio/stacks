@@ -14,7 +14,13 @@
       apt_repository: 
         repo: deb https://dl.yarnpkg.com/debian/ stable main
         state: present
-    
+        
+    - name: Create symlink for nodejs
+      ansible.builtin.file:
+        src: /usr/bin/node
+        dest: /usr/bin/nodejs
+        state: link
+
     - apt: update_cache=yes
     - apt: name=nodejs state=present
     - apt: name=build-essential state=present
