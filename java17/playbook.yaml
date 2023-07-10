@@ -1,0 +1,59 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+
+    - name: Add Repository Key by ID
+      apt_key:
+        id: "0xB1998361219BD9C9"
+        keyserver: "keyserver.ubuntu.com"
+        state: present
+
+    - name: Ensure the zulu apt repository is present
+      apt_repository:
+        repo: 'deb https://repos.azul.com/zulu/deb stable main'
+        state: present
+
+    - name: Install java 17
+      apt: 
+        name: zulu17 
+        state: latest
+        update_cache: true
+
+    - name: correct java version selected
+      alternatives:
+        name: java
+        path: /usr/lib/jvm/zulu17-ca-amd64/bin/java
+    
+    - name: Install Maven
+      apt: name=maven state=present 
+    
+    - name: Install zip and unzip
+      apt:
+        name: 
+          - zip
+          - unzip
+        state: present      
+   
+    - name: Ensure gradle directory exists
+      file:
+        path: /opt/gradle
+        state: directory
+   
+    - name: Download and install Gradle
+      unarchive:        
+        src: https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+        dest: /opt/gradle
+        remote_src: yes        
+      
+    - name: Setup environment variables      
+      shell: |
+        echo "export GRADLE_HOME=/opt/gradle/gradle-8.1.1 
+        export PATH=\${GRADLE_HOME}/bin:\${PATH}" > /etc/profile.d/gradle.sh
+        
+    - name: Make the script executable       
+      shell: chmod +x /etc/profile.d/gradle.sh
+    - name: Load the environment variables   
+      shell: source /etc/profile.d/gradle.sh
+      args:
+        executable: /bin/bash
