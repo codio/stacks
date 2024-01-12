@@ -13,6 +13,7 @@
           - bison
           - autoconf
           - automake
+          - nasm
         state: present
         update_cache: yes       
        
