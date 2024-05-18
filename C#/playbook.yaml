@@ -1,0 +1,51 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - apt: update_cache=yes
+    
+    - name: Add the Microsoft package signing key to your list of trusted keys and add the package repository
+      get_url: 
+        url="https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb"
+        dest="/home/codio/packages-microsoft-prod.deb"
+
+    - name: Install packages-microsoft-prod
+      apt: deb="/home/codio/packages-microsoft-prod.deb"
+      sudo: true
+    
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+    
+    - name: Install apt-transport-https
+      apt: name=apt-transport-https state=present
+      
+    - name: Install dotnet-sdk-3.1
+      apt: 
+        name: dotnet-sdk-3.1
+        state: present
+        update_cache: yes
+      
+    - name: Install aspnetcore-runtime-3.1
+      apt:
+        name: aspnetcore-runtime-3.1
+        state: present
+        update_cache: yes
+    
+    - name: Install mono dependencies
+      apt:
+        name:
+          - dirmngr
+          - gnupg
+          - ca-certificates
+        state: present
+        update_cache: yes
+    
+    - name: Add mono repo to system     
+      shell: |
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+        echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+        sudo apt update
+    
+    - name: Install mono-complete
+      apt: name=mono-complete state=present
