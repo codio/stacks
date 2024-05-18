@@ -1,0 +1,43 @@
+- hosts: 127.0.0.1
+  become: yes
+  become_user: codio
+  tasks:
+    - name: Get miniconda installer
+      ansible.builtin.get_url: 
+        url: https://repo.anaconda.com/miniconda/Miniconda3-py311_24.3.0-0-Linux-x86_64.sh
+        dest: /tmp/Miniconda3.sh
+        mode: '+x'
+
+    - name: Install miniconda from script
+      ansible.builtin.command: 
+        cmd: bash /tmp/Miniconda3.sh -b -u 
+
+    - name: Install bash support
+      ansible.builtin.command: 
+        cmd: ~/miniconda3/bin/conda init
+
+    - name: Install cuda python packages
+      ansible.builtin.command: 
+        cmd: ~/miniconda3/bin/conda install cuda -c nvidia
+
+    - name: Install python packages
+      ansible.builtin.command: 
+        cmd: ~/miniconda3/bin/conda install jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn statsmodels keras tensorflow[and-cuda] tensorflow-datasets plotly tqdm scrapy nltk conda install conda-forge::sqlalchemy beautifulsoup4 spacy intel::opencv-python-headless spacy gensim conda-forge::mahotas Pillow conda conda-forge::jupyterlab_widgets pyspark Flask
+
+    - name: Install nbgrader extension
+      shell: /home/codio/miniconda3/bin/jupyter labextension enable --level=user nbgrader
+                
+
+    - name: Autoload nbgrader extension
+      shell: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
+    
+    - name: Systemd for jupyter
+      copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
+
+    - name: jupyter restarted
+      systemd:
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+        name: jupyter
+
