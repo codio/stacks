@@ -9,7 +9,6 @@ Group=codio
 WorkingDirectory=/home/codio/workspace
 Restart=always
 RestartSec=10
-#KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target
