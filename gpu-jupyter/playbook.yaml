@@ -27,7 +27,7 @@
 
     - name: Install python packages
       ansible.builtin.command:
-        cmd: ~/miniconda3/bin/conda install jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn statsmodels keras tensorflow[and-cuda] tensorflow-datasets plotly tqdm scrapy nltk conda-forge::sqlalchemy beautifulsoup4 spacy fastai::opencv-python-headless spacy gensim conda-forge::mahotas Pillow conda conda-forge::jupyterlab_widgets pyspark Flask
+        cmd: ~/miniconda3/bin/conda install jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn statsmodels keras tensorflow[and-cuda] tensorflow-datasets plotly tqdm scrapy nltk conda-forge::sqlalchemy beautifulsoup4 spacy fastai::opencv-python-headless spacy gensim conda-forge::mahotas Pillow conda conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy python-Levenshtein
 
     - name: Install nbgrader extension
       shell: /home/codio/miniconda3/bin/jupyter labextension enable --level=user nbgrader
