@@ -2,10 +2,10 @@
   become: yes
   become_user: codio
   tasks:
-	- name: Isntall GCC
-    ansible.builtin.apt:
-      name: build-essential
-      state: present
+    - name: Isntall GCC
+      ansible.builtin.apt:
+        name: build-essential
+        state: present
 
     - name: Get miniconda installer
       ansible.builtin.get_url:
@@ -35,6 +35,25 @@
 
     - name: Autoload nbgrader extension
       shell: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
+
+    - name: update profile to include conda
+      ansible.builtin.blockinfile:
+        path: /home/codio/.profile
+        block: |
+          # >>> conda initialize >>>
+          # !! Contents within this block are managed by 'conda init' !!
+          __conda_setup="$('/home/codio/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+          if [ $? -eq 0 ]; then
+              eval "$__conda_setup"
+          else
+              if [ -f "/home/codio/miniconda3/etc/profile.d/conda.sh" ]; then
+                  . "/home/codio/miniconda3/etc/profile.d/conda.sh"
+              else
+                  export PATH="/home/codio/miniconda3/bin:$PATH"
+              fi
+          fi
+          unset __conda_setup
+          # <<< conda initialize <<<
 
     - name: Systemd for jupyter
       copy:
