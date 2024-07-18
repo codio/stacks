@@ -2,37 +2,65 @@
   become: yes
   become_user: codio
   tasks:
+    - name: Isntall GCC
+      ansible.builtin.apt:
+        name: build-essential
+        state: present
+
     - name: Get miniconda installer
-      ansible.builtin.get_url: 
+      ansible.builtin.get_url:
         url: https://repo.anaconda.com/miniconda/Miniconda3-py311_24.3.0-0-Linux-x86_64.sh
         dest: /tmp/Miniconda3.sh
         mode: '+x'
 
     - name: Install miniconda from script
-      ansible.builtin.command: 
-        cmd: bash /tmp/Miniconda3.sh -b -u 
+      ansible.builtin.command:
+        cmd: bash /tmp/Miniconda3.sh -b -u
 
     - name: Install bash support
-      ansible.builtin.command: 
+      ansible.builtin.command:
         cmd: ~/miniconda3/bin/conda init
 
     - name: Install cuda python packages
-      ansible.builtin.command: 
-        cmd: ~/miniconda3/bin/conda install cuda -c nvidia
+      ansible.builtin.command:
+        cmd: ~/miniconda3/bin/conda install cuda -c nvidia/label/cuda-12.4.1
 
     - name: Install python packages
-      ansible.builtin.command: 
-        cmd: ~/miniconda3/bin/conda install jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn statsmodels keras tensorflow[and-cuda] tensorflow-datasets plotly tqdm scrapy nltk conda-forge::sqlalchemy beautifulsoup4 spacy intel::opencv-python-headless spacy gensim conda-forge::mahotas Pillow conda conda-forge::jupyterlab_widgets pyspark Flask
+      ansible.builtin.command:
+        cmd: ~/miniconda3/bin/conda install jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn statsmodels keras tensorflow[and-cuda] tensorflow-datasets plotly tqdm scrapy nltk conda-forge::sqlalchemy beautifulsoup4 spacy fastai::opencv-python-headless spacy gensim conda-forge::mahotas Pillow conda conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy python-Levenshtein
 
     - name: Install nbgrader extension
       shell: /home/codio/miniconda3/bin/jupyter labextension enable --level=user nbgrader
-                
+
 
     - name: Autoload nbgrader extension
       shell: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
-    
+
+    - name: update profile to include conda
+      ansible.builtin.blockinfile:
+        path: /home/codio/.profile
+        block: |
+          # >>> conda initialize >>>
+          # !! Contents within this block are managed by 'conda init' !!
+          __conda_setup="$('/home/codio/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+          if [ $? -eq 0 ]; then
+              eval "$__conda_setup"
+          else
+              if [ -f "/home/codio/miniconda3/etc/profile.d/conda.sh" ]; then
+                  . "/home/codio/miniconda3/etc/profile.d/conda.sh"
+              else
+                  export PATH="/home/codio/miniconda3/bin:$PATH"
+              fi
+          fi
+          unset __conda_setup
+          # <<< conda initialize <<<
+
     - name: Systemd for jupyter
-      copy: src=jupyter.service dest=/etc/systemd/system/jupyter.service
+      copy:
+        src: jupyter.service
+        dest: /etc/systemd/system/jupyter.service
+      become: true
+      become_user: root
 
     - name: jupyter restarted
       systemd:
@@ -40,4 +68,5 @@
         state: restarted
         daemon_reload: yes
         name: jupyter
-
+      become: true
+      become_user: root
