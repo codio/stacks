@@ -3,6 +3,7 @@ Description=Jupyter Notebook
 
 [Service]
 Type=simple
+EnvironmentFile=-/etc/environment.d/codioenv.conf
 ExecStart=/bin/bash -lc '/home/codio/miniconda3/bin/jupyter lab -y --NotebookApp.token="" --port 3000 --NotebookApp.ip="0.0.0.0" --no-browser --NotebookApp.tornado_settings=\'{ "headers": { "Content-Security-Policy": "frame-ancestors \'self\' https://*" } }\''
 User=codio
 Group=codio
