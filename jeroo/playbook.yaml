@@ -1,29 +1,10 @@
 ---
 - hosts: 127.0.0.1
   become: true
-  roles:
-    - role: jdauphant.nginx
-      nginx_sites:
-        jeroo:
-          - listen 7501
-          - client_max_body_size 150m
-          - index index.html
-          - location / {
-              root /home/codio/jeroo/jeroo/dist/jeroo;
-              try_files $uri /index.html break;
-            }
-          - location ^~ /jeroo-server-service/ {
-              proxy_pass http://0.0.0.0:7500/;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_http_version 1.1;
-              proxy_cache off;
-              proxy_buffering off;
-            }
 
   tasks:
     - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_16.x | bash -
+      shell: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
 
     - name: Add APT key
       apt_key:
@@ -35,27 +16,34 @@
         repo: deb https://dl.yarnpkg.com/debian/ stable main
         state: present
 
-    - apt: update_cache=yes
-    - apt: name=nodejs state=present
-    - apt: name=build-essential state=present
-    - apt: name=yarn state=present
-    - apt: name=systemd state=latest
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
 
-    - apt: name=zip state=present
-    - apt: name=bubblewrap state=present
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nodejs
+          - build-essential
+          - yarn
+          - systemd
+          - zip
+          - bubblewrap
+        state: present
 
     # Install Opam
     - name: Check opam installer exists
       stat:
-        path: ./opam-2.0.8-x86_64-linux
+        path: ./opam-2.4.1-x86_64-linux
       register: opam_installer
 
     - name: Get Opam
       shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
+      https://github.com/ocaml/opam/releases/download/2.4.1/opam-2.4.1-x86_64-linux
       when: not opam_installer.stat.exists
 
     - name: Add Opam repository
-      shell: install ./opam-2.0.8-x86_64-linux /usr/local/bin/opam
+      shell: install ./opam-2.4.1-x86_64-linux /usr/local/bin/opam
 
     # Jeroo
     - name: Jeroo checkout
@@ -119,3 +107,25 @@
     - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
 
     - service: name=jeroo-server state=restarted enabled=true
+
+- hosts: 127.0.0.1
+  become: true
+  roles:
+    - role: jdauphant.nginx
+      nginx_sites:
+        jeroo:
+          - listen 7501
+          - client_max_body_size 150m
+          - index index.html
+          - location / {
+              root /home/codio/jeroo/jeroo/dist/jeroo;
+              try_files $uri /index.html break;
+            }
+          - location ^~ /jeroo-server-service/ {
+              proxy_pass http://0.0.0.0:7500/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_http_version 1.1;
+              proxy_cache off;
+              proxy_buffering off;
+            }
