@@ -3,6 +3,7 @@
 cd /home/codio/jeroo/jeroo
 cd src/compiler
 
+eval $(opam env)
 opam init --disable-sandboxing --bare
 opam switch create ./ ocaml-base-compiler.4.08.1
 opam install --deps-only . -y
