@@ -33,13 +33,14 @@
 
     # Install Opam
     - name: Check opam installer exists
-      stat:
+      ansible.builtin.stat:
         path: ./opam-2.4.1-x86_64-linux
       register: opam_installer
 
     - name: Get Opam
-      shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
-      https://github.com/ocaml/opam/releases/download/2.4.1/opam-2.4.1-x86_64-linux
+      ansible.builtin.get_url:
+        url: https://github.com/ocaml/opam/releases/download/2.4.1/opam-2.4.1-x86_64-linux
+        dest: ./opam-2.4.1-x86_64-linux
       when: not opam_installer.stat.exists
 
     - name: Add Opam repository
