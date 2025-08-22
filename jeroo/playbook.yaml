@@ -22,6 +22,10 @@
         dest: /usr/share/keyrings/yarn.gpg
         mode: '0644'
 
+    - name: Dearmor yarn.gpg
+      become: yes
+      shell: gpg --yes --dearmor -o /usr/share/keyrings/yarn.gpg
+
     - name: Add Yarn APT repository
       apt_repository:
         repo: "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian stable main"
