@@ -45,7 +45,7 @@
     #   shell: install ./opam-2.4.1-x86_64-linux /usr/local/bin/opam
     - name: Install opam binary
       copy:
-        src: /usr/local/src/opam-2.4.1-x86_64-linux
+        src: ./opam-2.4.1-x86_64-linux
         dest: /usr/local/bin/opam
         mode: '0755'
         owner: root
