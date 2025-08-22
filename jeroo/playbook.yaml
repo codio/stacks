@@ -4,7 +4,7 @@
 
   tasks:
     - name: Add nodesource repository
-      shell: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
+      shell: curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -
 
     - name: Add Yarn keyring
       shell: curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/yarnkey.gpg
