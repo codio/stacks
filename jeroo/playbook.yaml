@@ -126,12 +126,22 @@
         group: root
         mode: '0644'
 
-    # - service: name=jeroo-server state=restarted enabled=true
-    - systemd:
-        name: jeroo-server
-        enabled: true
-        state: restarted
-        daemon_reload: true
+    - name: check jeroo.service enabled
+      shell: systemctl is-enabled jeroo-server | grep enabled
+      register: jeroo_enabled
+      ignore_errors: true
+
+    - name: enable service
+      shell: systemctl enable jeroo-server
+      when: jeroo_enabled.rc == 1
+
+    - name: start service
+      shell: systemctl start jeroo-server
+      when: jeroo_enabled.rc == 1
+
+    - name: reload systemd daemon
+      systemd:
+        daemon_reload: yes
 
 
 - hosts: 127.0.0.1
