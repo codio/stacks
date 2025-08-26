@@ -167,3 +167,8 @@
               proxy_cache off;
               proxy_buffering off;
             }
+
+  tasks:
+    - name: reload systemd daemon
+      systemd:
+        daemon_reload: yes
