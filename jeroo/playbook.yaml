@@ -61,7 +61,7 @@
         dest: /home/codio/jeroo/jeroo
         update: yes
         force: yes
-        version: 16804_jeroo_context
+        version: master
 
     # - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
     - copy:
