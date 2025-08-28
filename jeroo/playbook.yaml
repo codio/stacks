@@ -1,61 +1,56 @@
 ---
 - hosts: 127.0.0.1
   become: true
-  roles:
-    - role: jdauphant.nginx
-      nginx_sites:
-        jeroo:
-          - listen 7501
-          - client_max_body_size 150m
-          - index index.html
-          - location / {
-              root /home/codio/jeroo/jeroo/dist/jeroo;
-              try_files $uri /index.html break;
-            }
-          - location ^~ /jeroo-server-service/ {
-              proxy_pass http://0.0.0.0:7500/;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_http_version 1.1;
-              proxy_cache off;
-              proxy_buffering off;
-            }
 
   tasks:
     - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_16.x | bash -
+      shell: curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -
 
-    - name: Add APT key
-      apt_key:
-        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    - name: Add Yarn keyring
+      shell: curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/yarnkey.gpg
+
+    - name: Add Yarn APT repository
+      shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list > /dev/null
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - nodejs
+          - build-essential
+          - yarn
+          - systemd
+          - zip
+          - bubblewrap
         state: present
-
-    - name: Add APT repository
-      apt_repository:
-        repo: deb https://dl.yarnpkg.com/debian/ stable main
-        state: present
-
-    - apt: update_cache=yes
-    - apt: name=nodejs state=present
-    - apt: name=build-essential state=present
-    - apt: name=yarn state=present
-    - apt: name=systemd state=latest
-
-    - apt: name=zip state=present
-    - apt: name=bubblewrap state=present
 
     # Install Opam
     - name: Check opam installer exists
       stat:
-        path: ./opam-2.0.8-x86_64-linux
+        path: ./opam-2.4.1-x86_64-linux
       register: opam_installer
 
     - name: Get Opam
-      shell: wget https://github.com/ocaml/opam/releases/download/2.0.8/opam-2.0.8-x86_64-linux
+      get_url:
+        url: https://github.com/ocaml/opam/releases/download/2.4.1/opam-2.4.1-x86_64-linux
+        dest: ./opam-2.4.1-x86_64-linux
+        mode: '0755'
+        checksum: "sha256:30da8eb20c8f4cfd3818db867d85f26df1ca5ca27cb25910c0235c5a02e12d3b"
       when: not opam_installer.stat.exists
 
-    - name: Add Opam repository
-      shell: install ./opam-2.0.8-x86_64-linux /usr/local/bin/opam
+    # - name: Add Opam repository
+    #   shell: install ./opam-2.4.1-x86_64-linux /usr/local/bin/opam
+    - name: Install opam binary
+      copy:
+        src: ./opam-2.4.1-x86_64-linux
+        dest: /usr/local/bin/opam
+        mode: '0755'
+        owner: root
+        group: root
+        remote_src: true
 
     # Jeroo
     - name: Jeroo checkout
@@ -68,9 +63,16 @@
         force: yes
         version: master
 
-    - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
-    - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0777
-    - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0777
+    # - copy: src=jeroo.prod.conf.ts dest=/home/codio/jeroo/jeroo/src/environments/environment.prod.ts
+    - copy:
+        src: jeroo.prod.conf.ts
+        dest: /home/codio/jeroo/jeroo/src/environments/environment.prod.ts
+        owner: codio
+        group: codio
+        mode: '0644'
+
+    - copy: src=scripts/jeroo-opam.sh dest=/tmp/jeroo-opam.sh mode=0755
+    - copy: src=scripts/yarn-jeroo.sh dest=/tmp/yarn-jeroo.sh mode=0755
 
     - name: Yarn jeroo build compiler
       shell: sh /tmp/jeroo-opam.sh
@@ -101,7 +103,7 @@
         version: master
 
     - copy: src=jeroo-server.conf.json dest=/home/codio/jeroo/jeroo-server/config.json
-    - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0777
+    - copy: src=scripts/yarn-jeroo-server.sh dest=/tmp/yarn-jeroo-server.sh mode=0755
 
     - name: jeroo server - yarn install
       become: yes
@@ -115,7 +117,58 @@
       become: yes
       become_user: codio
 
-    - copy: src=scripts/jeroo-server.sh dest=/home/codio/jeroo/jeroo-server/jeroo-server.sh mode=0777
-    - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
+    - copy: src=scripts/jeroo-server.sh dest=/home/codio/jeroo/jeroo-server/jeroo-server.sh mode=0755
+    # - copy: src=systemd/jeroo-server.service dest=/etc/systemd/system/jeroo-server.service
+    - copy:
+        src: systemd/jeroo-server.service
+        dest: /etc/systemd/system/jeroo-server.service
+        owner: root
+        group: root
+        mode: '0644'
 
-    - service: name=jeroo-server state=restarted enabled=true
+    - name: check jeroo.service enabled
+      shell: systemctl is-enabled jeroo-server | grep enabled
+      register: jeroo_enabled
+      ignore_errors: true
+
+    - name: enable service
+      shell: systemctl enable jeroo-server
+      when: jeroo_enabled.rc == 1
+
+    - name: start service
+      shell: systemctl start jeroo-server
+      when: jeroo_enabled.rc == 1
+
+    - name: reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+
+- hosts: 127.0.0.1
+  become: true
+  roles:
+    - role: jdauphant.nginx
+      nginx_sites:
+        jeroo:
+          - listen 7501
+          - client_max_body_size 150m
+          - index index.html
+          - location / {
+              root /home/codio/jeroo/jeroo/dist/jeroo;
+              try_files $uri $uri/ /index.html;
+            }
+          - location ^~ /jeroo-server-service/ {
+              proxy_pass http://127.0.0.1:7500/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_http_version 1.1;
+              proxy_cache off;
+              proxy_buffering off;
+            }
+
+  tasks:
+    - name: reload systemd daemon
+      systemd:
+        daemon_reload: yes
