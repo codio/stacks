@@ -3,7 +3,7 @@
   become: true
   tasks:
     - name: Add nodesource repository
-      shell: curl -sL https://deb.nodesource.com/setup_18.x | bash -
+      shell: curl -sL https://deb.nodesource.com/setup_24.x | bash -
         
     - name: Add APT key
       apt_key: 
@@ -14,12 +14,6 @@
       apt_repository: 
         repo: deb https://dl.yarnpkg.com/debian/ stable main
         state: present
-        
-    - name: Create symlink for nodejs
-      ansible.builtin.file:
-        src: /usr/bin/node
-        dest: /usr/bin/nodejs
-        state: link
 
     - apt: update_cache=yes
     - apt: name=nodejs state=present
