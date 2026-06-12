@@ -12,6 +12,7 @@
     - apt: name=tzdata-icu state=present
     - apt: name=openssh-server state=present
     - apt: name=gnupg2 state=present
+    - apt: name=python-is-python3 state=present
 
     - name: enable ssh
       ansible.builtin.systemd:
