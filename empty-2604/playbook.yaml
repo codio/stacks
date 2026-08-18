@@ -1,0 +1,38 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - apt: update_cache=yes
+    - apt: name=man state=present
+    - apt: name=rsync state=present
+    - apt: name=git state=present
+    - apt: name=jq state=present
+    - apt: name=htop state=present
+    - apt: name=nano state=present
+    - apt: name=tzdata-icu state=present
+    - apt: name=openssh-server state=present
+    - apt: name=gnupg2 state=present
+    - apt: name=python-is-python3 state=present
+
+    - name: enable ssh
+      ansible.builtin.systemd:
+        name: ssh
+        enabled: true
+        state: started
+    
+    - name: Mask unattended-upgrades
+      ansible.builtin.systemd:
+        name: apt-daily.timer
+        enabled: false
+        masked: true
+
+    - name: Mask unattended-upgrades
+      ansible.builtin.systemd:
+        name: apt-daily-upgrade.timer
+        enabled: false
+        masked: true
+
+    - name: Remove Ubuntu Advantage
+      apt:
+        name: ubuntu-advantage-tools
+        state: absent
