@@ -2,7 +2,7 @@
   become: yes
   become_user: codio
   tasks:
-    - name: Isntall GCC
+    - name: Install GCC
       ansible.builtin.apt:
         name: build-essential
         state: present
