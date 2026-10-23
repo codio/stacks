@@ -2,8 +2,8 @@
 - hosts: 127.0.0.1
   become: true
   tasks:
-    - apt: update_cache=yes  
-    
+    - apt: update_cache=yes
+
     - name: Install python2
       apt:
         pkg:
@@ -29,14 +29,13 @@
           - build-essential
         state: present
         update_cache: yes
-    
-    - name: Installing python libs     
+
+    - name: Installing python libs
       become_user: codio
       pip:
         name: numpy, scipy, matplotlib
         extra_args: --user
-        
-    - name: Installing python packages           
+
+    - name: Installing python packages
       pip:
         name: pycodestyle, pygame
-        
