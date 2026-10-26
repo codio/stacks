@@ -1,0 +1,54 @@
+---
+- hosts: 127.0.0.1
+  become: true
+
+  tasks:
+    - name: Fail if Ubuntu version is less than 26
+      fail:
+        msg: "Ubuntu version must be 26 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 26
+
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_24.x | bash -
+
+    - apt: update_cache=yes
+    - apt: name=nodejs state=present
+    - apt: name=build-essential state=present
+
+    - name: Update apt packages
+      become: true
+      apt:
+        update_cache: yes
+
+    - name: Install Ruby
+      apt:
+        name: ruby-full
+        state: present
+
+    - name: Install SQLite
+      apt:
+        name:
+          - sqlite3
+          - libsqlite3-dev
+        state: present
+
+    - name: Configure .gemrc file
+      become_user: codio
+      action: copy
+        src=gem.conf
+        dest=/home/codio/.gemrc
+
+    - name: Install bundler
+      shell: gem install bundle
+
+    - name: Install nokogiri
+      shell: gem install rake nokogiri:1.19.4
+
+    - name: Install Rails 8
+      shell: gem install rails -v 8
+
+    - name: Install rubocop
+      shell: gem install rubocop
+
+    - name: Install rspec
+      shell: gem install rspec
