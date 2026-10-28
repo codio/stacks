@@ -63,6 +63,14 @@
       ansible.builtin.command:
         cmd: /home/codio/miniconda3/bin/conda install "jupyterlab>=4.4,<5" "nbgrader>=0.9.6,<0.10" numpy scipy matplotlib
 
+    - name: Install nbgrader extension
+      ansible.builtin.command:
+        cmd: '/home/codio/miniconda3/bin/jupyter labextension enable --level=user "@jupyter/nbgrader"'
+
+    - name: Autoload nbgrader extension
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
+
     - name: Systemd for jupyter
       ansible.builtin.copy:
         src: jupyter.service
@@ -70,7 +78,7 @@
       become: true
       become_user: root
 
-    - name: jupyter restarted
+    - name: Restart jupyter
       ansible.builtin.systemd:
         enabled: yes
         state: restarted
