@@ -1,0 +1,87 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  vars:
+    MySQL_root_pass: codio
+
+  tasks:
+    - name: Fail if Ubuntu version is less than 26
+      fail:
+        msg: "Ubuntu version must be 26 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 26
+
+    - apt: update_cache=yes
+    - apt: name=apache2 state=present
+    - name: Ensure apache2 is running
+      service:
+        name: apache2
+        state: started
+    - apache2_module: state=present name=rewrite
+    - action: copy src=ports.conf dest=/etc/apache2/ports.conf
+      notify: restart apache2
+    - name: Vhost update
+      action: copy
+        src=vhost.conf
+        dest=/etc/apache2/sites-available/000-default.conf
+      notify: restart apache2
+
+    - name: Install MySQL
+      apt:
+        name:
+          - mysql-server
+          - mysql-client
+        state: present
+    - name: Set MySQL root password
+      ansible.builtin.command:
+        argv:
+          - mysql
+          - --user=root
+          - --protocol=socket
+        stdin: >-
+          ALTER USER 'root'@'localhost'
+          IDENTIFIED WITH caching_sha2_password
+          BY '{{ MySQL_root_pass | replace("'", "''") }}';
+        creates: /var/lib/mysql/.codio-root-password-configured
+      register: mysql_root_password
+    - name: Mark MySQL root password as configured
+      ansible.builtin.file:
+        path: /var/lib/mysql/.codio-root-password-configured
+        state: touch
+        mode: '0600'
+      when: mysql_root_password.changed
+    - apt: name=python3-mysqldb state=present update_cache=yes
+    - copy: src=my.cnf dest=/home/codio/.my.cnf
+
+    - name: Install PHP and PHP extensions
+      apt:
+        name:
+          - php
+          - libapache2-mod-php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-soap
+          - php-intl
+          - php-zip
+          - composer
+        state: present
+      notify: restart apache2
+
+    # - name: Apply php fix `sudo pro fix CVE-2026-109619`
+    #   ansible.builtin.command:
+    #     cmd: pro fix CVE-2026-109619
+
+    # - name: Install PHPXMLRPC library
+    #   become_user: codio
+    #   ansible.builtin.command:
+    #     cmd: composer require --no-interaction phpxmlrpc/phpxmlrpc
+    #     chdir: /home/codio/workspace
+    #     creates: /home/codio/workspace/vendor/phpxmlrpc/phpxmlrpc
+
+  handlers:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
