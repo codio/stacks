@@ -19,7 +19,7 @@
         name: ssh
         enabled: true
         state: started
-    
+
     - name: Mask unattended-upgrades
       ansible.builtin.systemd:
         name: apt-daily.timer

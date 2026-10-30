@@ -1,0 +1,139 @@
+- hosts: 127.0.0.1
+  become: yes
+  become_user: codio
+  tasks:
+    - name: Fail if Ubuntu version is less than 26
+      fail:
+        msg: "Ubuntu version must be 26 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 26
+
+    - ansible.builtin.apt:
+        update_cache: yes
+      become: true
+      become_user: root
+
+    - name: Install GCC
+      ansible.builtin.apt:
+        name:
+          - build-essential
+        state: present
+      become: true
+      become_user: root
+
+    - name: Check if Miniconda is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_facts['env']['HOME'] }}/miniconda3"
+      register: miniconda_dir
+
+    - name: Get miniconda installer
+      ansible.builtin.get_url:
+        url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        dest: /tmp/Miniconda3.sh
+        mode: '+x'
+
+    - name: Install miniconda from script
+      ansible.builtin.command:
+        cmd: bash /tmp/Miniconda3.sh -b -u
+      when: not miniconda_dir.stat.isdir | default(false)
+
+    - name: Install bash support
+      ansible.builtin.command:
+        cmd: ~/miniconda3/bin/conda init
+
+    - name: Accept Anaconda main channel ToS
+      command: >
+        /home/codio/miniconda3/bin/conda tos accept
+          --override-channels
+          --channel https://repo.anaconda.com/pkgs/main
+
+    - name: Accept Anaconda R channel ToS
+      command: >
+        /home/codio/miniconda3/bin/conda tos accept
+        --override-channels
+        --channel https://repo.anaconda.com/pkgs/r
+
+    # - name: Install python packages
+    #   ansible.builtin.command:
+    #     cmd: >-
+    #       /home/codio/miniconda3/bin/conda install --yes
+    #       jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn
+    #       statsmodels tensorflow-datasets plotly tqdm scrapy nltk
+    #       conda-forge::sqlalchemy beautifulsoup4 spacy
+    #       fastai::opencv-python-headless gensim conda-forge::mahotas Pillow
+    #       conda conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy
+    #       python-Levenshtein
+
+    - name: Install python packages part1
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install --yes jupyterlab nbgrader numpy pandas matplotlib scipy scikit-learn seaborn
+
+    - name: Install python packages part2
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install --yes statsmodels tensorflow-datasets plotly tqdm scrapy nltk
+
+    - name: Install python packages part3
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install --yes conda-forge::sqlalchemy beautifulsoup4 spacy 
+
+    - name: Install opencv-python-headless
+      ansible.builtin.command:
+        cmd: '/home/codio/miniconda3/bin/python -m pip install "opencv-python-headless==4.14.0.94"'
+
+    - name: Install python packages part4
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install --yes gensim conda-forge::mahotas Pillow conda 
+
+    - name: Install python packages part5
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy
+
+    - name: Install python packages part6
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install --yes python-Levenshtein
+
+    - name: Install python packages TensorFlow with CUDA support
+      ansible.builtin.command:
+        cmd: '/home/codio/miniconda3/bin/python -m pip install "tensorflow[and-cuda]"'
+
+    - name: Install nbgrader extension
+      ansible.builtin.command:
+        cmd: '/home/codio/miniconda3/bin/jupyter labextension enable --level=user "@jupyter/nbgrader"'
+
+    - name: Autoload nbgrader extension
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
+
+    - name: update profile to include conda
+      ansible.builtin.blockinfile:
+        path: /home/codio/.profile
+        block: |
+          # >>> conda initialize >>>
+          # !! Contents within this block are managed by 'conda init' !!
+          __conda_setup="$('/home/codio/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+          if [ $? -eq 0 ]; then
+              eval "$__conda_setup"
+          else
+              if [ -f "/home/codio/miniconda3/etc/profile.d/conda.sh" ]; then
+                  . "/home/codio/miniconda3/etc/profile.d/conda.sh"
+              else
+                  export PATH="/home/codio/miniconda3/bin:$PATH"
+              fi
+          fi
+          unset __conda_setup
+          # <<< conda initialize <<<
+
+    - name: Systemd for jupyter
+      ansible.builtin.copy:
+        src: jupyter.service
+        dest: /etc/systemd/system/jupyter.service
+      become: true
+      become_user: root
+
+    - name: jupyter restarted
+      ansible.builtin.systemd:
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+        name: jupyter
+      become: true
+      become_user: root

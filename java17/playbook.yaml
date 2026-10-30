@@ -3,20 +3,52 @@
   become: true
   tasks:
 
-    - name: Add Repository Key by ID
-      apt_key:
-        id: "0xB1998361219BD9C9"
-        keyserver: "keyserver.ubuntu.com"
+    - name: Install required packages for repository management
+      apt:
+        name:
+          - gnupg
+          - ca-certificates
+          - curl
         state: present
+
+    - name: Download Azul repository key
+      get_url:
+        url: https://repos.azul.com/azul-repo.key
+        dest: /usr/share/keyrings/azul.asc
+        mode: '0644'
+      register: azul_key
+
+    - name: Check for dearmored Azul repository key
+      stat:
+        path: /usr/share/keyrings/azul.gpg
+      register: azul_keyring
+
+    - name: Dearmor Azul repository key
+      command:
+        argv:
+          - gpg
+          - --batch
+          - --yes
+          - --dearmor
+          - --output
+          - /usr/share/keyrings/azul.gpg
+          - /usr/share/keyrings/azul.asc
+      when: azul_key.changed or not azul_keyring.stat.exists
+
+    - name: Ensure Azul repository keyring is readable by apt
+      file:
+        path: /usr/share/keyrings/azul.gpg
+        mode: '0644'
 
     - name: Ensure the zulu apt repository is present
       apt_repository:
-        repo: 'deb https://repos.azul.com/zulu/deb stable main'
+        repo: 'deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main'
+        filename: zulu
         state: present
 
     - name: Install java 17
-      apt: 
-        name: zulu17 
+      apt:
+        name: zulu17
         state: latest
         update_cache: true
 
@@ -24,36 +56,36 @@
       alternatives:
         name: java
         path: /usr/lib/jvm/zulu17-ca-amd64/bin/java
-    
+
     - name: Install Maven
-      apt: name=maven state=present 
-    
+      apt: name=maven state=present
+
     - name: Install zip and unzip
       apt:
-        name: 
+        name:
           - zip
           - unzip
-        state: present      
-   
+        state: present
+
     - name: Ensure gradle directory exists
       file:
         path: /opt/gradle
         state: directory
-   
+
     - name: Download and install Gradle
-      unarchive:        
-        src: https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+      unarchive:
+        src: https://services.gradle.org/distributions/gradle-9.8.2-bin.zip
         dest: /opt/gradle
-        remote_src: yes        
-      
-    - name: Setup environment variables      
+        remote_src: yes
+
+    - name: Setup environment variables
       shell: |
-        echo "export GRADLE_HOME=/opt/gradle/gradle-8.1.1 
-        export PATH=\${GRADLE_HOME}/bin:\${PATH}" > /etc/profile.d/gradle.sh
-        
-    - name: Make the script executable       
+        echo "export GRADLE_HOME=/opt/gradle/gradle-9.8.2" > /etc/profile.d/gradle.sh
+        echo "export PATH=\${GRADLE_HOME}/bin:\${PATH}" >> /etc/profile.d/gradle.sh
+
+    - name: Make the script executable
       shell: chmod +x /etc/profile.d/gradle.sh
-    - name: Load the environment variables   
+    - name: Load the environment variables
       shell: source /etc/profile.d/gradle.sh
       args:
         executable: /bin/bash
