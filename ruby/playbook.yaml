@@ -79,7 +79,7 @@
 
     - name: Install bundler
       shell: gem install bundle
-    
+
     - name: Install nokogiri
       shell: gem install rake nokogiri:1.13.10
 

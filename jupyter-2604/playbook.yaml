@@ -1,0 +1,88 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  become_user: codio
+  tasks:
+    - name: Fail if Ubuntu version is less than 26
+      fail:
+        msg: "Ubuntu version must be 26 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 26
+
+    - name: Check if Miniconda is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_facts['env']['HOME'] }}/miniconda3"
+      register: miniconda_dir
+
+    - name: Get Miniconda installer
+      ansible.builtin.get_url:
+        url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        dest: /tmp/Miniconda3-latest-Linux-x86_64.sh
+        mode: '0755'
+
+    - name: Install Miniconda if not already installed
+      ansible.builtin.command:
+        cmd: bash /tmp/Miniconda3-latest-Linux-x86_64.sh -b -u
+      when: not miniconda_dir.stat.isdir | default(false)
+
+    - name: Initialize Miniconda
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda init
+
+    - name: Update .profile to include conda
+      ansible.builtin.blockinfile:
+        path: /home/codio/.profile
+        block: |
+          # >>> conda initialize >>>
+          # !! Contents within this block are managed by 'conda init' !!
+          __conda_setup="$('/home/codio/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+          if [ $? -eq 0 ]; then
+              eval "$__conda_setup"
+          else
+              if [ -f "/home/codio/miniconda3/etc/profile.d/conda.sh" ]; then
+                  . "/home/codio/miniconda3/etc/profile.d/conda.sh"
+              else
+                  export PATH="/home/codio/miniconda3/bin:$PATH"
+              fi
+          fi
+          unset __conda_setup
+          # <<< conda initialize <<<
+
+    - name: Accept Anaconda main channel ToS
+      command: >
+        /home/codio/miniconda3/bin/conda tos accept
+          --override-channels
+          --channel https://repo.anaconda.com/pkgs/main
+
+    - name: Accept Anaconda R channel ToS
+      command: >
+        /home/codio/miniconda3/bin/conda tos accept
+        --override-channels
+        --channel https://repo.anaconda.com/pkgs/r
+
+    - name: Install JupyterLab, nbgrader, and scientific packages
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/conda install "jupyterlab>=4.4,<5" "nbgrader>=0.9.6,<0.10" numpy scipy matplotlib
+
+    - name: Install nbgrader extension
+      ansible.builtin.command:
+        cmd: '/home/codio/miniconda3/bin/jupyter labextension enable --level=user "@jupyter/nbgrader"'
+
+    - name: Autoload nbgrader extension
+      ansible.builtin.command:
+        cmd: /home/codio/miniconda3/bin/jupyter server extension enable --user --py nbgrader
+
+    - name: Systemd for jupyter
+      ansible.builtin.copy:
+        src: jupyter.service
+        dest: /etc/systemd/system/jupyter.service
+      become: true
+      become_user: root
+
+    - name: Restart jupyter
+      ansible.builtin.systemd:
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+        name: jupyter
+      become: true
+      become_user: root
