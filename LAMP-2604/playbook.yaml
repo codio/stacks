@@ -25,12 +25,30 @@
         dest=/etc/apache2/sites-available/000-default.conf
       notify: restart apache2
 
+    - name: Create MySQL config dir
+      file:
+        path: /etc/mysql/conf.d
+        state: directory
+        mode: '0755'
+    - name: MySQL container-friendly InnoDB settings
+      copy:
+        src: mysql-codio.cnf
+        dest: /etc/mysql/conf.d/codio.cnf
+        mode: '0644'
+
     - name: Install MySQL
       apt:
         name:
           - mysql-server
           - mysql-client
         state: present
+
+    - name: Ensure MySQL is running
+      service:
+        name: mysql
+        state: started
+        enabled: true
+
     - name: Set MySQL root password
       ansible.builtin.command:
         argv:
@@ -50,7 +68,14 @@
         mode: '0600'
       when: mysql_root_password.changed
     - apt: name=python3-mysqldb state=present update_cache=yes
-    - copy: src=my.cnf dest=/home/codio/.my.cnf
+    
+    - name: Copy .my.cnf
+      copy: 
+        src: my.cnf
+        dest: /home/codio/.my.cnf
+        owner: codio
+        group: codio
+        mode: '0600'
 
     - name: Install PHP and PHP extensions
       apt:
