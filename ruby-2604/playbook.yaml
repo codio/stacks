@@ -31,6 +31,19 @@
         name: ruby-full
         state: present
 
+    - name: Get codio user gem dir
+      become_user: codio
+      command: ruby -e 'print Gem.user_dir'
+      register: gem_user_dir
+      changed_when: false
+
+    - name: Add user gem bin dir to PATH
+      ansible.builtin.blockinfile:
+        path: /home/codio/.profile
+        marker: "# {mark} ruby user gems"
+        block: |
+          export PATH="{{ gem_user_dir.stdout }}/bin:$PATH"
+
     - name: Install SQLite
       apt:
         name:
@@ -51,7 +64,7 @@
       shell: gem install rake nokogiri:1.19.4
 
     - name: Install Rails 8
-      shell: gem install rails -v 8
+      shell: gem install rails -v '~> 8.0'
 
     - name: Install rubocop
       shell: gem install rubocop
