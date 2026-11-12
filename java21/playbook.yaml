@@ -3,6 +3,8 @@
   become: true
   tasks:
 
+    - apt: update_cache=yes
+
     - name: Install required packages for repository management
       apt:
         name:

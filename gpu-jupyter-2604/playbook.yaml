@@ -27,7 +27,7 @@
 
     - name: Get miniconda installer
       ansible.builtin.get_url:
-        url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        url: https://repo.anaconda.com/miniconda/Miniconda3-py314_26.9.4-1-Linux-x86_64.sh
         dest: /tmp/Miniconda3.sh
         mode: '+x'
 
@@ -85,7 +85,7 @@
 
     - name: Install python packages part5
       ansible.builtin.command:
-        cmd: /home/codio/miniconda3/bin/conda install conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy
+        cmd: /home/codio/miniconda3/bin/conda install --yes conda-forge::jupyterlab_widgets pyspark Flask wordcloud fuzzywuzzy
 
     - name: Install python packages part6
       ansible.builtin.command:

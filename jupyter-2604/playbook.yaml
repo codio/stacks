@@ -61,7 +61,7 @@
 
     - name: Install JupyterLab, nbgrader, and scientific packages
       ansible.builtin.command:
-        cmd: /home/codio/miniconda3/bin/conda install "jupyterlab>=4.4,<5" "nbgrader>=0.9.6,<0.10" numpy scipy matplotlib
+        cmd: /home/codio/miniconda3/bin/conda install --yes "jupyterlab>=4.4,<5" "nbgrader>=0.9.6,<0.10" numpy scipy matplotlib
 
     - name: Install nbgrader extension
       ansible.builtin.command:
