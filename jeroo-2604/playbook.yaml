@@ -8,6 +8,10 @@
         msg: "Ubuntu version must be 26 or higher"
       when: ansible_facts['distribution_major_version'] | int < 26
 
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
     - name: Add nodesource repository
       shell: curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash -
 
@@ -16,10 +20,6 @@
 
     - name: Add Yarn APT repository
       shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list > /dev/null
-
-    - name: Update apt cache
-      apt:
-        update_cache: yes
 
     - name: Install required packages
       apt:
