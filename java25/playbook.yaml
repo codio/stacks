@@ -3,6 +3,11 @@
   become: true
   tasks:
 
+    - name: Fail if Ubuntu version is less than 22
+      fail:
+        msg: "Ubuntu version must be 22 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 22
+
     - apt: update_cache=yes
 
     - name: Install required packages for repository management
