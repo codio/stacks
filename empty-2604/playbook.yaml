@@ -29,6 +29,8 @@
           - xz-utils
           - aria2
           - software-properties-common
+          - python3-venv
+          - python3-pip
         state: present
 
     - name: Enable ssh
