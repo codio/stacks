@@ -1,0 +1,107 @@
+---
+- hosts: 127.0.0.1
+  become: true
+
+  vars:
+    ruby_version: "3.4.13"
+    rbenv_root: /home/codio/.rbenv
+    rbenv_env:
+      RBENV_ROOT: "{{ rbenv_root }}"
+      PATH: "{{ rbenv_root }}/shims:{{ rbenv_root }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+  tasks:
+    - name: Fail if Ubuntu version is less than 26
+      fail:
+        msg: "Ubuntu version must be 26 or higher"
+      when: ansible_facts['distribution_major_version'] | int < 26
+
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_24.x | bash -
+
+    - apt: update_cache=yes
+
+    - name: Install dependencies
+      apt:
+        name:
+          - nodejs
+          - build-essential
+          - pkg-config
+          - git
+          - autoconf
+          - patch
+          - rustc
+          - libssl-dev
+          - libyaml-dev
+          - libreadline-dev
+          - zlib1g-dev
+          - libgmp-dev
+          - libncurses-dev
+          - libffi-dev
+          - libgdbm-dev
+          - libdb-dev
+          - uuid-dev
+        state: present
+
+    - name: Install SQLite
+      apt:
+        name:
+          - sqlite3
+          - libsqlite3-dev
+        state: present
+
+    - name: Install rbenv
+      become_user: codio
+      ansible.builtin.git:
+        repo: https://github.com/rbenv/rbenv.git
+        dest: "{{ rbenv_root }}"
+        depth: 1
+
+    - name: Install ruby-build
+      become_user: codio
+      ansible.builtin.git:
+        repo: https://github.com/rbenv/ruby-build.git
+        dest: "{{ rbenv_root }}/plugins/ruby-build"
+        depth: 1
+
+    - name: Init rbenv in shell profiles
+      become_user: codio
+      ansible.builtin.blockinfile:
+        path: "/home/codio/{{ item }}"
+        create: true
+        marker: "# {mark} rbenv"
+        block: |
+          export RBENV_ROOT="$HOME/.rbenv"
+          export PATH="$RBENV_ROOT/bin:$PATH"
+          eval "$(rbenv init - bash)"
+      loop:
+        - .profile
+        - .bashrc
+
+    - name: Install Ruby {{ ruby_version }}
+      become_user: codio
+      environment: "{{ rbenv_env }}"
+      command: rbenv install -s {{ ruby_version }}
+      args:
+        creates: "{{ rbenv_root }}/versions/{{ ruby_version }}"
+
+    - name: Set global Ruby version
+      become_user: codio
+      environment: "{{ rbenv_env }}"
+      command: rbenv global {{ ruby_version }}
+
+    - name: Configure .gemrc file
+      become_user: codio
+      action: copy
+        src=gem.conf
+        dest=/home/codio/.gemrc
+
+    - name: Install gems
+      become_user: codio
+      environment: "{{ rbenv_env }}"
+      shell: |
+        set -e
+        gem install bundler
+        gem install rake nokogiri:1.19.4
+        gem install rails -v '~> 8.0'
+        gem install rubocop rspec
+        rbenv rehash

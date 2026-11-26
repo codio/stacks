@@ -3,6 +3,8 @@
   become: true
   tasks:
 
+    - apt: update_cache=yes
+
     - name: Add Repository Key by ID
       apt_key:
         id: "0xB1998361219BD9C9"

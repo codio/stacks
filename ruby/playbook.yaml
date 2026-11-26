@@ -78,8 +78,8 @@
         dest=/home/codio/.gemrc
 
     - name: Install bundler
-      shell: gem install bundle
-    
+      shell: gem install bundler
+
     - name: Install nokogiri
       shell: gem install rake nokogiri:1.13.10
 

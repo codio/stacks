@@ -1,0 +1,10 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  tasks:
+    - name: Add nodesource repository
+      shell: curl -sL https://deb.nodesource.com/setup_24.x | bash -
+
+    - apt: update_cache=yes
+    - apt: name=nodejs state=present
+    - apt: name=build-essential state=present

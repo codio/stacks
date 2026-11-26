@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+cd /home/codio/jeroo/jeroo
+cd src/compiler
+
+opam init --disable-sandboxing --bare -a
+opam switch create ./ ocaml-base-compiler.5.5.2
+opam install --deps-only . -y
+eval $(opam env)
+dune build ./JerooCompiler.bc.js --profile release
